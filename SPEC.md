@@ -15,7 +15,7 @@ Duas camadas:
 
 Áreas nesta versão: Vendas e Financeiro. RH, Jurídico e Operações aparecem no menu como "em breve", desativadas.
 
-Stack: Next.js App Router + TypeScript, Supabase (Auth, Postgres, Realtime), API Anthropic, Vercel. Ver CLAUDE.md.
+Stack: Next.js App Router + TypeScript, Supabase (Auth, Postgres, Realtime), API Gemini, Vercel. Ver CLAUDE.md.
 
 ---
 
@@ -81,7 +81,7 @@ Parâmetros:
 Comportamento:
 1. Insere linha em `execucoes_agentes` com `status = rodando`, `inicio = now()`, entrada.
 2. Lê o system prompt de `prompts/<area>/<papel>.md`.
-3. Chama a API Anthropic (`claude-sonnet-4-6`, `max_tokens 2000`).
+3. Chama a API Gemini (`gemini-2.5-flash`, `max_tokens 2000`).
 4. Faz `JSON.parse` do texto retornado. Se falhar, marca `erro` e lança exceção.
 5. Atualiza a linha com `status = ok`, `saida`, tokens, `fim`.
 6. Devolve `{ saida, execucao_id }`. O `execucao_id` é passado como `chamado_por` quando esse agente dispara outro (não ocorre nesta versão: quem dispara é sempre o orquestrador, então `chamado_por` recebe o id da execução "orquestrador" descrita abaixo).

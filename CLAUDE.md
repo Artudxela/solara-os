@@ -10,12 +10,12 @@ Construa somente o que a instrução do momento pede. Não avance para seções 
 ## Stack (não trocar)
 - Next.js (App Router) + TypeScript, deploy na Vercel.
 - Supabase: Auth (e-mail e senha), Postgres, Realtime.
-- API da Anthropic pelo SDK oficial. Modelo: `claude-sonnet-4-6`.
+- API do Gemini pelo SDK oficial (`@google/genai`). Modelo: `gemini-2.5-flash`.
 - CSS simples (Tailwind é aceito). Nenhuma biblioteca de UI pesada.
-- Variáveis de ambiente em `.env.local`: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `ANTHROPIC_API_KEY`.
+- Variáveis de ambiente em `.env.local`: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `GEMINI_API_KEY`.
 
 ## Agentes
-- Existe uma única função `agente(papel, entrada, contexto)` em `lib/agente.ts`. Todo agente passa por ela. Nunca chame a API da Anthropic de outro lugar.
+- Existe uma única função `agente(papel, entrada, contexto)` em `lib/agente.ts`. Todo agente passa por ela. Nunca chame a API do Gemini de outro lugar.
 - O system prompt de cada papel é lido do arquivo `prompts/<area>/<papel>.md`. Não copie o texto do prompt para dentro do código.
 - Todo agente devolve JSON estrito. Peça JSON no prompt, faça `JSON.parse` na resposta e trate erro de parse como falha do agente.
 - Toda chamada grava em `execucoes_agentes` no início (status `rodando`) e atualiza no fim (`ok` ou `erro`), com entrada, saída, tokens, tempo e `chamado_por`.

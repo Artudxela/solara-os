@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { criarClienteNavegador } from "@/lib/supabase/client";
 import Organograma from "@/components/Organograma";
+import FilaAprovacao from "@/components/FilaAprovacao";
 
 type Pedido = {
   cod_pedido: string;
@@ -40,6 +41,7 @@ export default function VendasApp() {
   const [selecionado, setSelecionado] = useState<string | null>(null);
   const [execucoes, setExecucoes] = useState<Execucao[]>([]);
   const [processando, setProcessando] = useState<string | null>(null);
+  const [aba, setAba] = useState<"kanban" | "aprovacoes">("kanban");
 
   useEffect(() => {
     const supabase = criarClienteNavegador();
@@ -139,6 +141,28 @@ export default function VendasApp() {
         )}
       </div>
 
+      <div className="flex gap-4 border-b border-zinc-200 px-4 dark:border-zinc-800">
+        <button
+          onClick={() => setAba("kanban")}
+          className={`border-b-2 py-2 text-sm font-medium ${
+            aba === "kanban" ? "border-zinc-900 dark:border-zinc-100" : "border-transparent text-zinc-500"
+          }`}
+        >
+          Pedidos
+        </button>
+        <button
+          onClick={() => setAba("aprovacoes")}
+          className={`border-b-2 py-2 text-sm font-medium ${
+            aba === "aprovacoes" ? "border-zinc-900 dark:border-zinc-100" : "border-transparent text-zinc-500"
+          }`}
+        >
+          Aprovações
+        </button>
+      </div>
+
+      {aba === "aprovacoes" && <FilaAprovacao area="vendas" />}
+
+      {aba === "kanban" && (
       <div className="flex flex-1 overflow-hidden">
         <div className="flex flex-1 gap-4 overflow-x-auto p-4">
           {COLUNAS.map((coluna) => (
@@ -219,6 +243,7 @@ export default function VendasApp() {
           </div>
         )}
       </div>
+      )}
     </div>
   );
 }

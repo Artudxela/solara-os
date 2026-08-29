@@ -78,6 +78,7 @@ export async function agente(
         systemInstruction: systemPrompt,
         maxOutputTokens: 2000,
         responseMimeType: "application/json",
+        thinkingConfig: { thinkingBudget: 0 },
       },
     });
   } catch (erro) {

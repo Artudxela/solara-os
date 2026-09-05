@@ -26,11 +26,16 @@ export default async function Home() {
 
   const { data: perfil } = await supabase
     .from("TB_PERFIS")
-    .select("areas")
+    .select("areas, papel, deve_trocar_senha")
     .eq("id", user.id)
     .single();
 
+  if (perfil?.deve_trocar_senha) {
+    redirect("/trocar-senha");
+  }
+
   const areasDoUsuario: string[] = perfil?.areas ?? [];
+  const ehAdmin = perfil?.papel === "admin";
 
   return (
     <div className="flex flex-1 flex-col items-center gap-8 p-8">
@@ -38,6 +43,11 @@ export default async function Home() {
         <h1 className="text-2xl font-semibold">Solara OS</h1>
         <div className="flex items-center gap-3">
           <span className="text-sm text-zinc-600 dark:text-zinc-400">{user.email}</span>
+          {ehAdmin && (
+            <Link href="/admin" className="text-sm text-zinc-500 hover:underline">
+              Admin
+            </Link>
+          )}
           <BotaoSair />
         </div>
       </div>

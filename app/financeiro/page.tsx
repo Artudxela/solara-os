@@ -14,9 +14,13 @@ export default async function FinanceiroPage() {
 
   const { data: perfil } = await supabase
     .from("TB_PERFIS")
-    .select("areas")
+    .select("areas, deve_trocar_senha")
     .eq("id", user.id)
     .single();
+
+  if (perfil?.deve_trocar_senha) {
+    redirect("/trocar-senha");
+  }
 
   const areas: string[] = perfil?.areas ?? [];
 

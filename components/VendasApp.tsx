@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { criarClienteNavegador } from "@/lib/supabase/client";
 import Organograma from "@/components/Organograma";
 import FilaAprovacao from "@/components/FilaAprovacao";
+import LinhaDoTempo from "@/components/LinhaDoTempo";
 
 type Pedido = {
   cod_pedido: string;
@@ -12,19 +13,6 @@ type Pedido = {
   canal: string;
   mensagem: string;
   status: string;
-};
-
-type Execucao = {
-  id: string;
-  agente: string;
-  status: "rodando" | "ok" | "erro";
-  entrada: unknown;
-  saida: unknown;
-  erro: string | null;
-  tokens_entrada: number | null;
-  tokens_saida: number | null;
-  inicio: string | null;
-  fim: string | null;
 };
 
 const COLUNAS: { chave: string; titulo: string }[] = [
@@ -39,7 +27,6 @@ export default function VendasApp() {
   const [pedidos, setPedidos] = useState<Pedido[]>([]);
   const [clientes, setClientes] = useState<Record<string, string>>({});
   const [selecionado, setSelecionado] = useState<string | null>(null);
-  const [execucoes, setExecucoes] = useState<Execucao[]>([]);
   const [processando, setProcessando] = useState<string | null>(null);
   const [aba, setAba] = useState<"kanban" | "aprovacoes">("kanban");
 
@@ -94,19 +81,8 @@ export default function VendasApp() {
     };
   }, []);
 
-  async function carregarExecucoes(codPedido: string) {
-    const supabase = criarClienteNavegador();
-    const { data } = await supabase
-      .from("execucoes_agentes")
-      .select("*")
-      .eq("item_id", codPedido)
-      .order("inicio", { ascending: true });
-    setExecucoes((data as Execucao[]) ?? []);
-  }
-
   function selecionar(codPedido: string) {
     setSelecionado(codPedido);
-    carregarExecucoes(codPedido);
   }
 
   async function processar(codPedido: string) {
@@ -224,22 +200,7 @@ export default function VendasApp() {
             <p className="text-sm">{pedidoSelecionado.mensagem}</p>
 
             <h3 className="mt-2 text-sm font-semibold">Execuções</h3>
-            {execucoes.length === 0 && (
-              <p className="text-xs text-zinc-400">Nenhuma execução ainda.</p>
-            )}
-            {execucoes.map((execucao) => (
-              <details
-                key={execucao.id}
-                className="rounded border border-zinc-200 p-2 text-xs dark:border-zinc-800"
-              >
-                <summary className="cursor-pointer font-medium">
-                  {execucao.agente} · {execucao.status}
-                </summary>
-                <pre className="mt-2 whitespace-pre-wrap break-words">
-                  {JSON.stringify(execucao.saida ?? execucao.erro, null, 2)}
-                </pre>
-              </details>
-            ))}
+            <LinhaDoTempo item_id={pedidoSelecionado.cod_pedido} />
           </div>
         )}
       </div>

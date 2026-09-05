@@ -224,6 +224,36 @@ describe("processarPedido() — orquestrador de Vendas", () => {
     expect(updates.at(-1)?.args[0]).toEqual({ status: "aguardando_aprovacao" });
   });
 
+  it("quando o Triador classifica como complemento, segue o pipeline completo (nao entra no early-exit de 'nao e orcamento')", async () => {
+    const supabaseMock = criarSupabaseMock(respostasCaminhoOrcamento());
+    mockCriarClienteAdmin.mockReturnValue(supabaseMock);
+
+    mockAgente
+      .mockResolvedValueOnce({ saida: { ...TRIAGEM_ORCAMENTO, tipo: "complemento" }, execucao_id: "exec-triador" })
+      .mockResolvedValueOnce({ saida: CONTEXTO_PESQUISADOR, execucao_id: "exec-pesquisador" })
+      .mockResolvedValueOnce({
+        saida: { resposta: "Complementando a proposta anterior...", resumo: "complemento do pedido" },
+        execucao_id: "exec-redator-1",
+      })
+      .mockResolvedValueOnce({ saida: { aprovado: true, motivos: [] }, execucao_id: "exec-revisor-1" });
+
+    const resultado = await processarPedido("PED001");
+
+    expect(mockAgente).toHaveBeenCalledTimes(4);
+    expect(mockAgente.mock.calls.map((c) => c[0])).toEqual(["triador", "pesquisador", "redator", "revisor"]);
+    expect(resultado.revisor).toEqual({ aprovado: true, motivos: [] });
+
+    const insertAprovacao = supabaseMock.chamadas.find((c) => c.tabela === "aprovacoes" && c.metodo === "insert");
+    expect(insertAprovacao?.args[0]).toMatchObject({
+      titulo: "Metalúrgica Andrade · complemento do pedido",
+      status: "pendente",
+    });
+    expect(insertAprovacao?.args[0]).not.toMatchObject({ titulo: "Não é orçamento: complemento" });
+
+    const updates = supabaseMock.chamadas.filter((c) => c.tabela === "TB_PEDIDOS" && c.metodo === "update");
+    expect(updates.at(-1)?.args[0]).toEqual({ status: "aguardando_aprovacao" });
+  });
+
   it("quando o Triador falha, marca a execucao raiz como erro e propaga a excecao sem tocar em aprovacoes", async () => {
     const supabaseMock = criarSupabaseMock({
       TB_PEDIDOS: [{ data: PEDIDO_BASE, error: null }, { data: null, error: null }],

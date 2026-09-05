@@ -1,9 +1,13 @@
 import { NextResponse } from "next/server";
 import { conciliar } from "@/lib/orquestradores/financeiro";
+import { exigirArea } from "@/lib/supabase/exigirArea";
 
 export const maxDuration = 60;
 
 export async function POST(request: Request) {
+  const acesso = await exigirArea("financeiro");
+  if ("erro" in acesso) return acesso.erro;
+
   const { extrato_id } = await request.json();
 
   if (!extrato_id || typeof extrato_id !== "string") {

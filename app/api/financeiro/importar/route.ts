@@ -1,14 +1,13 @@
 import { NextResponse } from "next/server";
-import { criarClienteServidor } from "@/lib/supabase/server";
 import { criarClienteAdmin } from "@/lib/supabase/admin";
+import { exigirArea } from "@/lib/supabase/exigirArea";
 import { limparExtrato, limparTitulos, type LinhaLancamento } from "@/lib/financeiro/limpar";
 import { casarLancamentos, type TituloParaCasamento } from "@/lib/financeiro/casar";
 
 export async function POST(request: Request) {
-  const supabaseSessao = await criarClienteServidor();
-  const {
-    data: { user },
-  } = await supabaseSessao.auth.getUser();
+  const acesso = await exigirArea("financeiro");
+  if ("erro" in acesso) return acesso.erro;
+  const { user } = acesso;
 
   const formData = await request.formData();
   const arquivoExtrato = formData.get("arquivo_extrato") as File | null;

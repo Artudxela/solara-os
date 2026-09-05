@@ -1,11 +1,16 @@
 import { NextResponse } from "next/server";
-import { criarClienteServidor } from "@/lib/supabase/server";
 import { criarClienteAdmin } from "@/lib/supabase/admin";
+import { exigirAutenticado } from "@/lib/supabase/exigirAutenticado";
 
 type Decisao = "aprovada" | "editada" | "rejeitada";
 
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
+
+  const resultado = await exigirAutenticado();
+  if ("erro" in resultado) return resultado.erro;
+  const { user, supabaseSessao } = resultado;
+
   const { decisao, texto_editado, observacao } = (await request.json()) as {
     decisao: Decisao;
     texto_editado?: string;
@@ -19,11 +24,6 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     return NextResponse.json({ erro: "observacao e obrigatoria para rejeitar" }, { status: 400 });
   }
 
-  const supabaseSessao = await criarClienteServidor();
-  const {
-    data: { user },
-  } = await supabaseSessao.auth.getUser();
-
   const supabase = criarClienteAdmin();
 
   const { data: aprovacao, error: erroAprovacao } = await supabase
@@ -34,6 +34,17 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
 
   if (erroAprovacao || !aprovacao) {
     return NextResponse.json({ erro: "Aprovacao nao encontrada" }, { status: 404 });
+  }
+
+  const { data: perfil } = await supabaseSessao
+    .from("TB_PERFIS")
+    .select("areas")
+    .eq("id", user.id)
+    .single();
+
+  const areasDoUsuario: string[] = perfil?.areas ?? [];
+  if (!areasDoUsuario.includes(aprovacao.area)) {
+    return NextResponse.json({ erro: `Sem acesso à área ${aprovacao.area}.` }, { status: 403 });
   }
 
   let novaProposta = aprovacao.proposta;

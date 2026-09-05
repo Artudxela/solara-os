@@ -1,7 +1,11 @@
 import { NextResponse } from "next/server";
 import { criarClienteAdmin } from "@/lib/supabase/admin";
+import { exigirArea } from "@/lib/supabase/exigirArea";
 
 export async function POST(request: Request) {
+  const acesso = await exigirArea("vendas");
+  if ("erro" in acesso) return acesso.erro;
+
   const { cod_cliente, canal, mensagem } = (await request.json()) as {
     cod_cliente?: string;
     canal?: string;
